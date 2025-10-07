@@ -1,28 +1,35 @@
+// index.js — WebSocket + Express server for Rahoot
 import express from "express";
 import { WebSocketServer } from "ws";
 
 const app = express();
 
 // Render cung cấp PORT qua biến môi trường
-const PORT = process.env.PORT || 5505;
+const PORT = process.env.PORT || 10000;
 
-// Khởi tạo server HTTP
-const server = app.listen(PORT, () => {
-  console.log(`✅ Rahoot WebSocket Server running on port ${PORT}`);
+// HTTP route để Render kiểm tra
+app.get("/", (req, res) => {
+  res.send("✅ Rahoot WebSocket server is running and ready!");
 });
 
-// Tạo WebSocket server trên cùng server HTTP
+// Tạo HTTP server
+const server = app.listen(PORT, "0.0.0.0", () => {
+  console.log(`✅ HTTP server listening on port ${PORT}`);
+});
+
+// Tạo WebSocket server chia sẻ cùng HTTP server
 const wss = new WebSocketServer({ server });
 
 wss.on("connection", (ws) => {
-  console.log("🔗 New client connected");
+  console.log("🔗 New WebSocket client connected");
 
-  ws.on("message", (msg) => {
-    console.log("📩 Message received:", msg.toString());
-    // Gửi lại cho tất cả client khác
+  ws.on("message", (message) => {
+    console.log("📩 Received:", message.toString());
+
+    // Broadcast lại cho mọi người
     wss.clients.forEach((client) => {
       if (client.readyState === ws.OPEN) {
-        client.send(msg.toString());
+        client.send(message.toString());
       }
     });
   });
@@ -32,7 +39,4 @@ wss.on("connection", (ws) => {
   });
 });
 
-// Route kiểm tra
-app.get("/", (req, res) => {
-  res.send("✅ Rahoot WebSocket server is running!");
-});
+console.log("🚀 Rahoot WebSocket Server booting...");
