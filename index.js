@@ -1,42 +1,45 @@
-// ✅ Rahoot WebSocket Server (Render-compatible)
+// ✅ Rahoot WebSocket Server (Render-Ready)
 import express from "express";
-import http from "http";
 import { WebSocketServer } from "ws";
+import http from "http";
 
 const app = express();
 
-// Render cung cấp PORT qua biến môi trường
+// PORT phải dùng từ Render
 const PORT = process.env.PORT || 10000;
 
-// Endpoint để Render xác nhận app đang chạy
+// Route kiểm tra để Render nhận diện HTTP port
 app.get("/", (req, res) => {
-  res.send("✅ Rahoot WebSocket server is running on Render!");
+  res.status(200).send("✅ Rahoot WebSocket server is alive!");
 });
 
-// Tạo HTTP server
+// Tạo HTTP server từ Express
 const server = http.createServer(app);
 
-// Khởi tạo WebSocket server trên cùng HTTP server
+// Tạo WebSocket server dùng chung HTTP server
 const wss = new WebSocketServer({ server });
 
 wss.on("connection", (ws) => {
   console.log("🔗 New client connected");
 
-  ws.on("message", (msg) => {
-    console.log("📩 Message received:", msg.toString());
+  ws.on("message", (message) => {
+    console.log("📩 Received:", message.toString());
 
-    // Gửi lại tin nhắn cho tất cả client khác
+    // Gửi lại tin nhắn cho mọi client khác
     wss.clients.forEach((client) => {
       if (client.readyState === ws.OPEN) {
-        client.send(msg.toString());
+        client.send(message.toString());
       }
     });
   });
 
-  ws.on("close", () => console.log("❌ Client disconnected"));
+  ws.on("close", () => {
+    console.log("❌ Client disconnected");
+  });
 });
 
-// Bắt đầu lắng nghe
+// Quan trọng: lắng nghe đúng cổng và host
 server.listen(PORT, "0.0.0.0", () => {
-  console.log(`🚀 Rahoot WebSocket + HTTP server running on port ${PORT}`);
+  console.log(`🚀 Server listening on http://0.0.0.0:${PORT}`);
+  console.log("✅ WebSocket ready on the same port");
 });
