@@ -2,7 +2,13 @@ import { WebSocketServer } from "ws";
 import http from "http";
 
 const port = process.env.PORT || 5505;
-const server = http.createServer();
+
+// Tạo HTTP server (Render yêu cầu có cổng HTTP mở)
+const server = http.createServer((req, res) => {
+  res.writeHead(200, { "Content-Type": "text/plain" });
+  res.end("✅ Rahoot WebSocket Server is running\n");
+});
+
 const wss = new WebSocketServer({ server });
 
 let rooms = {};
@@ -34,4 +40,6 @@ wss.on("connection", (ws) => {
   ws.on("close", () => console.log("Client disconnected"));
 });
 
-server.listen(port, () => console.log(`✅ WebSocket server running on ${port}`));
+server.listen(port, "0.0.0.0", () => {
+  console.log(`✅ WebSocket server running on port ${port}`);
+});
